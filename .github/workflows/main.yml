@@ -12,8 +12,6 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run checkout
         uses: actions/checkout@v4
       - name: Setup Python
@@ -31,5 +29,7 @@ jobs:
           reviewdog_version: latest
       # Step2: Run linter(s) and reviewdog
       - name: Lint with pylint
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pylint --rcfile=~/.pylintrc *.py | reviewdog -efm="%f:%l:%c: %m" -reporter=github-pr-review
