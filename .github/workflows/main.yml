@@ -1,0 +1,35 @@
+name: DemoForReviewdogs
+
+on:
+  - pull_request
+env:
+  REVIEWDOG_GITHUB_API_TOKEN: "${{ secrets.REVIEWDOG_GITHUB_API_TOKEN }}"
+jobs:
+  demo-job:
+    name: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Run checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+            python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint
+          pylint --generate-rcfile > ~/.pylintrc
+      # Step1: Install reviewdog
+      - uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+      # Step2: Run linter(s) and reviewdog
+      - name: Lint with pylint
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pylint --rcfile=~/.pylintrc *.py | reviewdog -efm="%f:%l:%c: %m" -reporter=github-pr-review
